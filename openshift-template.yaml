@@ -1,0 +1,170 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: sushiweb
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: sushiweb
+    name: sushiweb
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: sushiweb:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: ${SOURCE_REPOSITORY_URL}
+      type: Git
+    strategy:
+      dockerStrategy: {}
+      type: Docker
+    triggers:
+    - github:
+        secret: ${GITHUB_WEBHOOK_SECRET}
+      type: GitHub
+    - type: ConfigChange
+    - imageChange: {}
+      type: ImageChange
+  status:
+    lastVersion: 0
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    generation: 1
+    labels:
+      app: sushiweb
+    name: sushiweb
+  spec:
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: sushiweb:latest
+      generation: null
+      importPolicy: {}
+      name: latest
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    generation: 1
+    labels:
+      app: sushiweb
+    name: sushiweb
+  spec:
+    replicas: 3
+    selector:
+      app: sushiweb
+      deploymentconfig: sushiweb
+    strategy:
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        labels:
+          app: sushiweb
+          deploymentconfig: sushiweb
+      spec:
+        containers:
+        - image: sushiweb
+          imagePullPolicy: Always
+          livenessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 2
+          name: sushiweb
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            tcpSocket:
+              port: 8080
+            timeoutSeconds: 2
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - type: ConfigChange
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - sushiweb
+        from:
+          kind: ImageStreamTag
+          name: sushiweb:latest
+      type: ImageChange
+  status:
+    availableReplicas: 3
+    observedGeneration: 1
+    replicas: 3
+    updatedReplicas: 3
+- apiVersion: v1
+  kind: Route
+  metadata:
+    labels:
+      app: sushiweb
+    name: sushiweb-http
+  spec:
+    host: ${SUSHIWEB_URL}
+    port:
+      targetPort: 8080
+    tls:
+      insecureEdgeTerminationPolicy: Redirect
+      termination: edge
+    to:
+      kind: Service
+      name: sushiweb
+      weight: 100
+- apiVersion: v1
+  kind: Service
+  metadata:
+    labels:
+      app: sushiweb
+    name: sushiweb
+  spec:
+    ports:
+    - name: http
+      port: 8080
+      protocol: TCP
+      targetPort: 8080
+    selector:
+      app: sushiweb
+    sessionAffinity: None
+    type: LoadBalancer
+  status:
+    loadBalancer: {}
+parameters:
+  - name: SOURCE_REPOSITORY_URL
+    displayName: Source Repository URL
+    description: The URL of the repository with your application source code
+    value: https://github.com/schabrolles/sushiweb.git
+    required: true
+  - name: GITHUB_WEBHOOK_SECRET
+    description: A secret string used to configure the GitHub webhook
+    generate: expression
+    from: "[a-zA-Z0-9]{40}"
+  - name: SUSHIWEB_URL
+    displayName: URL for SUSHIWEB route
+    value: sushi.10.7.11.23.nip.io
+    required: true
+message: "The GitHub webhook secret is ${GITHUB_WEBHOOK_SECRET}"
