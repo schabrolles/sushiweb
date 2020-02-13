@@ -12,7 +12,8 @@ RUN	apk add --no-cache apache2
 
 COPY website/ /var/www/localhost/htdocs/
 RUN ARCH=$(uname -m) \
-	&& cp /var/www/localhost/htdocs/index_$ARCH.html  /var/www/localhost/htdocs/index.html
+	#&& cp /var/www/localhost/htdocs/index_$ARCH.html  /var/www/localhost/htdocs/index.html
+	&& sed s/_ARCHITECTURE_/$ARCH/ /var/www/localhost/htdocs/index_template.html > /var/www/localhost/htdocs/index.html
 
 # Change right access for none-root usage (make it works on openshift)
 RUN chown -R apache:0 /var/www/localhost/htdocs && chmod -R g=u /var/www/localhost/htdocs \
