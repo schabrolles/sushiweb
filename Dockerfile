@@ -1,4 +1,4 @@
-FROM alpine
+FROM quay.io/schabrolles/alpine
 
 # ---------------------------- #
 #   Http server installation   #
