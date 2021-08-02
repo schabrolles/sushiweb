@@ -149,13 +149,25 @@ objects:
               ref: github-withref-push
           interceptors:
             - cel:
-                filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
-                overlays:
-                  - expression: 'body.ref.split(''/'')[2]'
-                    key: branch_name
-          name: cel-trig
+              filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
+              overlays:
+                - expression: 'body.ref.split(''/'')[2]'
+                  key: branch_name
+          name: build-on-branch
           template:
-            ref: trigger-template-${APP_NAME}-git     
+            ref: trigger-template-${APP_NAME}-git
+        - bindings:
+            - kind: TriggerBinding
+              ref: github-withref-push
+          interceptors:
+            - cel:
+              filter: 'has(body.ref) && body.ref.split(''/'')[1] == ''tags'''
+              overlays:
+                - expression: 'body.ref.split(''/'')[2]'
+                  key: tag_name
+          name: build-on-tag
+          template:
+            ref: trigger-template-${APP_NAME}-git 
   - apiVersion: triggers.tekton.dev/v1alpha1
     kind: TriggerTemplate
     metadata:
@@ -400,10 +412,10 @@ parameters:
     value: .
   - description: Test Image
     name: TEST_IMAGE
-    value: image-registry.openshift-image-registry.svc:5000/my_project/sushiweb:test
+    value: image-registry.openshift-image-registry.svc:5000/my_project/sushiweb-test
   - description: Production Image
     name: IMAGE
-    value: image-registry.openshift-image-registry.svc:5000/my_project/sushiweb:prod
+    value: image-registry.openshift-image-registry.svc:5000/my_project/sushiweb
   - description: smee URL to monitor
     name: SMEESOURCE
     value: https://smee.io/Gux6po61ZNiNcxLQ
