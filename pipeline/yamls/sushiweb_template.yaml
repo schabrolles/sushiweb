@@ -133,6 +133,28 @@ objects:
         - name: branch
           value: $(extensions.branch_name)
   - apiVersion: triggers.tekton.dev/v1alpha1
+    kind: TriggerBinding
+    metadata:
+      name: github-withref-newtag
+    spec:
+      params:
+        - name: git-ref
+          value: $(body.ref)
+        - name: git-revision
+          value: $(body.head_commit.id)
+        - name: git-commit-message
+          value: $(body.head_commit.message)
+        - name: git-repo-url
+          value: $(body.repository.url)
+        - name: git-repo-name
+          value: $(body.repository.name)
+        - name: content-type
+          value: $(header.Content-Type)
+        - name: pusher-name
+          value: $(body.pusher.name)
+        - name: tag
+          value: $(extensions.tag_name)
+  - apiVersion: triggers.tekton.dev/v1alpha1
     kind: EventListener
     metadata:
       name: event-listener-${APP_NAME}
@@ -144,21 +166,21 @@ objects:
       resources: {}
       serviceAccountName: pipeline
       triggers:
-        # - bindings:
-        #     - kind: TriggerBinding
-        #       ref: github-withref-push
-        #   interceptors:
-        #     - cel:
-        #       filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
-        #       overlays:
-        #         - expression: 'body.ref.split(''/'')[2]'
-        #           key: branch_name
-        #   name: build-on-branch
-        #   template:
-        #     ref: trigger-template-${APP_NAME}-git
         - bindings:
             - kind: TriggerBinding
               ref: github-withref-push
+          interceptors:
+            - cel:
+              filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
+              overlays:
+                - expression: 'body.ref.split(''/'')[2]'
+                  key: branch_name
+          name: build-on-branch
+          template:
+            ref: trigger-template-${APP_NAME}-git
+        - bindings:
+            - kind: TriggerBinding
+              ref: github-withref-newtag
           interceptors:
             - cel:
               filter: 'has(body.ref) && body.ref.split(''/'')[1] == ''tags'''
