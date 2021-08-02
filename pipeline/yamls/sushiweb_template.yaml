@@ -111,6 +111,28 @@ objects:
         weight: 100
       wildcardPolicy: None
   - apiVersion: triggers.tekton.dev/v1alpha1
+    kind: TriggerBinding
+    metadata:
+      name: github-withref-push
+    spec:
+      params:
+        - name: git-ref
+          value: $(body.ref)
+        - name: git-revision
+          value: $(body.head_commit.id)
+        - name: git-commit-message
+          value: $(body.head_commit.message)
+        - name: git-repo-url
+          value: $(body.repository.url)
+        - name: git-repo-name
+          value: $(body.repository.name)
+        - name: content-type
+          value: $(header.Content-Type)
+        - name: pusher-name
+          value: $(body.pusher.name)
+        - name: branch
+          value: $(extensions.branch_name)
+  - apiVersion: triggers.tekton.dev/v1alpha1
     kind: EventListener
     metadata:
       name: event-listener-${APP_NAME}
@@ -123,10 +145,17 @@ objects:
       serviceAccountName: pipeline
       triggers:
         - bindings:
-            - kind: ClusterTriggerBinding
-              ref: github-push
+            - kind: TriggerBinding
+              ref: github-withref-push
+          interceptors:
+            - cel:
+                filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
+                overlays:
+                  - expression: 'body.ref.split(''/'')[2]'
+                    key: branch_name
+          name: cel-trig
           template:
-            ref: trigger-template-${APP_NAME}-git
+            ref: trigger-template-${APP_NAME}-git     
   - apiVersion: triggers.tekton.dev/v1alpha1
     kind: TriggerTemplate
     metadata:
@@ -336,21 +365,6 @@ objects:
           workspaces:
             - name: images-url
               workspace: workspace
-        # - name: apply-template
-        #   params:
-        #     - name: templateName
-        #       value: sushiweb
-        #     - name: templateArgs
-        #       value: >-
-        #         -p IMAGE=$(params.IMAGE_NAME) -p GIT_REPO=$(params.GIT_REPO) -p
-        #         APP_NAME=$(params.APP_NAME) -p GIT_REVISION=$(params.GIT_REVISION)
-        #         -p PATH_CONTEXT=$(params.PATH_CONTEXT) -p
-        #         TEST_IMAGE=$(params.TEST_IMAGE)
-        #   runAfter:
-        #     - skopeo-copy
-        #   taskRef:
-        #     kind: Task
-        #     name: apply-template
         - name: deploy
           params:
             - name: SCRIPT
