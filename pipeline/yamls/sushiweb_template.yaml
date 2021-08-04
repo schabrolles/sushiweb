@@ -171,10 +171,10 @@ objects:
               ref: github-withref-push
           interceptors:
             - cel:
-              filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
-              overlays:
-                - expression: 'body.ref.split(''/'')[2]'
-                  key: branch_name
+                filter: 'has(body.ref) && body.ref.split(''/'')[2] == ${GIT_REVISION}'
+                overlays:
+                  - expression: 'body.ref.split(''/'')[2]'
+                    key: branch_name
           name: build-on-branch
           template:
             ref: trigger-template-${APP_NAME}-git
@@ -183,10 +183,10 @@ objects:
               ref: github-withref-newtag
           interceptors:
             - cel:
-              filter: 'has(body.ref) && body.ref.split(''/'')[1] == ''tags'''
-              overlays:
-                - expression: 'body.ref.split(''/'')[2]'
-                  key: tag_name
+                filter: 'has(body.ref) && body.ref.split(''/'')[1] == ''tags'''
+                overlays:
+                  - expression: 'body.ref.split(''/'')[2]'
+                    key: tag_name
           name: build-on-tag
           template:
             ref: trigger-template-${APP_NAME}-git 
