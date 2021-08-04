@@ -171,7 +171,7 @@ objects:
               ref: github-withref-push
           interceptors:
             - cel:
-                filter: 'has(body.ref) && body.ref.split(''/'')[2] == ${GIT_REVISION}'
+                filter: 'has(body.ref) && body.ref.split(''/'')[2] == ''${GIT_REVISION}'''
                 overlays:
                   - expression: 'body.ref.split(''/'')[2]'
                     key: branch_name
