@@ -478,7 +478,7 @@ objects:
             - name: SCRIPT
               value: oc rollout restart deployment/$(params.APP_NAME)
           runAfter:
-            - skopeo-copy
+            - patch-deployment
           taskRef:
             kind: ClusterTask
             name: openshift-client
