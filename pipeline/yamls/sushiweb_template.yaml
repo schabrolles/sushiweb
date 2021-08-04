@@ -186,10 +186,10 @@ objects:
                 filter: 'has(body.ref) && body.ref.split(''/'')[1] == ''tags'''
                 overlays:
                   - expression: 'body.ref.split(''/'')[2]'
-                    key: tag_name
+                    key: tag-name
           name: build-on-tag
           template:
-            ref: trigger-template-${APP_NAME}-git 
+            ref: trigger-template-${APP_NAME}-git-tag
   - apiVersion: triggers.tekton.dev/v1alpha1
     kind: TriggerTemplate
     metadata:
@@ -226,6 +226,63 @@ objects:
                 value: ${PATH_CONTEXT}
               - name: TEST_IMAGE
                 value: ${TEST_IMAGE}
+            pipelineRef:
+              name: ${APP_NAME}-build-git
+            resources: []
+            status: null
+            workspaces:
+              - name: workspace
+                volumeClaimTemplate:
+                  metadata:
+                    creationTimestamp: null
+                  spec:
+                    accessModes:
+                      - ReadWriteOnce
+                    resources:
+                      requests:
+                        storage: 1Gi
+                    storageClassName: nfs-storage-provisioner
+                    volumeMode: Filesystem
+                  status: {}
+  - apiVersion: triggers.tekton.dev/v1alpha1
+    kind: TriggerTemplate
+    metadata:
+      name: trigger-template-${APP_NAME}-git-tag
+    spec:
+      params:
+        - name: git-revision
+        - name: git-commit-message
+        - name: git-repo-url
+        - name: git-repo-name
+        - name: content-type
+        - name: pusher-name
+        - name: tag-name
+      resourcetemplates:
+        - apiVersion: tekton.dev/v1beta1
+          kind: PipelineRun
+          metadata:
+            annotations: {}
+            generateName: ${APP_NAME}-git-
+            labels:
+              pipeline.openshift.io/strategy: docker
+              pipeline.openshift.io/type: kubernetes
+              tekton.dev/pipeline: ${APP_NAME}-build-git
+          spec:
+            params:
+              - name: APP_NAME
+                value: ${APP_NAME}
+              - name: GIT_REPO
+                value: ${GIT_REPO}
+              - name: GIT_REVISION
+                value: ${GIT_REVISION}
+              - name: IMAGE_NAME
+                value: ${IMAGE}
+              - name: PATH_CONTEXT
+                value: ${PATH_CONTEXT}
+              - name: TEST_IMAGE
+                value: ${TEST_IMAGE}
+              - name: IMAGE_TAG
+                value: $(tt.params.tag-name)
             pipelineRef:
               name: ${APP_NAME}-build-git
             resources: []
@@ -319,6 +376,9 @@ objects:
         - default: ${TEST_IMAGE}
           name: TEST_IMAGE
           type: string
+        - default: latest
+          name: IMAGE_TAG
+          type: string
       tasks:
         - name: fetch-repository
           params:
@@ -337,7 +397,7 @@ objects:
         - name: build
           params:
             - name: IMAGE
-              value: $(params.TEST_IMAGE)
+              value: $(params.TEST_IMAGE):$(params.IMAGE_TAG)
             - name: TLSVERIFY
               value: 'false'
             - name: CONTEXT
@@ -353,7 +413,7 @@ objects:
         - name: deploy-test-image
           params:
             - name: SCRIPT
-              value: oc new-app --name $(params.APP_NAME)-test $(params.TEST_IMAGE)
+              value: oc new-app --name $(params.APP_NAME)-test $(params.TEST_IMAGE):$(params.IMAGE_TAG)
           runAfter:
             - build
           taskRef:
@@ -384,9 +444,9 @@ objects:
         - name: skopeo-copy
           params:
             - name: srcImageURL
-              value: 'docker://$(params.TEST_IMAGE)'
+              value: 'docker://$(params.TEST_IMAGE):$(params.IMAGE_TAG)'
             - name: destImageURL
-              value: 'docker://$(params.IMAGE_NAME)'
+              value: 'docker://$(params.IMAGE_NAME):$(params.IMAGE_TAG)'
             - name: srcTLSverify
               value: 'false'
             - name: destTLSverify
