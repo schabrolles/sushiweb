@@ -274,7 +274,7 @@ objects:
               - name: GIT_REPO
                 value: ${GIT_REPO}
               - name: GIT_REVISION
-                value: ${GIT_REVISION}
+                value: $(tt.params.tag) 
               - name: IMAGE_NAME
                 value: ${IMAGE}
               - name: PATH_CONTEXT
