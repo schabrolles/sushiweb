@@ -459,6 +459,20 @@ objects:
           workspaces:
             - name: images-url
               workspace: workspace
+        - name: patch-deployment
+          params:
+            - name: SCRIPT
+              value: >-
+                oc patch deployment/$(params.APP_NAME) --type='json' -p='[{"op":
+                "replace", "path": "/spec/template/spec/containers/0/image",
+                "value": "$(params.IMAGE_NAME):$(params.IMAGE_TAG)"}]'
+            - name: VERSION
+              value: latest
+          runAfter:
+            - skopeo-copy
+          taskRef:
+            kind: ClusterTask
+            name: openshift-client
         - name: deploy
           params:
             - name: SCRIPT
