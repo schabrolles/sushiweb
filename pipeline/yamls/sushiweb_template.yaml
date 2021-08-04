@@ -153,7 +153,7 @@ objects:
         - name: pusher-name
           value: $(body.pusher.name)
         - name: tag
-          value: $(extensions.tag_name)
+          value: $(extensions.tag-name)
   - apiVersion: triggers.tekton.dev/v1alpha1
     kind: EventListener
     metadata:
@@ -256,7 +256,7 @@ objects:
         - name: git-repo-name
         - name: content-type
         - name: pusher-name
-        - name: tag-name
+        - name: tag
       resourcetemplates:
         - apiVersion: tekton.dev/v1beta1
           kind: PipelineRun
@@ -282,7 +282,7 @@ objects:
               - name: TEST_IMAGE
                 value: ${TEST_IMAGE}
               - name: IMAGE_TAG
-                value: $(tt.params.tag-name)
+                value: $(tt.params.tag)
             pipelineRef:
               name: ${APP_NAME}-build-git
             resources: []
