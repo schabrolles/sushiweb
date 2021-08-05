@@ -35,6 +35,8 @@ spec:
             value: {{ .Values.git.context }}
           - name: TEST_IMAGE
             value: "{{ .Values.image.repository }}-test"
+          - name: IMAGE_TAG
+            value: $(tt.params.tag)
         pipelineRef:
           name: {{ include "sushiweb.fullname" . }}-build-git
         resources: []
