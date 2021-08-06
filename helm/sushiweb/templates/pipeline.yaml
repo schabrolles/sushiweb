@@ -108,37 +108,55 @@ spec:
       workspaces:
         - name: images-url
           workspace: workspace
-    - name: patch-deployment
+    - name: helm-upgrade-from-source
       params:
-        - name: SCRIPT
-          value: >-
-            oc patch deployment/$(params.APP_NAME) --type='json' -p='[{"op":
-            "replace", "path": "/spec/template/spec/containers/0/image",
-            "value": "$(params.IMAGE_NAME):$(params.IMAGE_TAG)"}]'
-        - name: VERSION
-          value: latest
+        - name: charts_dir
+          value: helm/sushiweb
+        - name: release_name
+          value: sushiweb
+        - name: values_file
+          value: values.yaml
+        - name: helm_image
+          value: quay.io/schabrolles/k8s-helm
       runAfter:
-        - skopeo-copy
+        - kopeo-copy
       taskRef:
         kind: ClusterTask
-        name: openshift-client
-    - name: deploy
-      params:
-        - name: SCRIPT
-          value: oc rollout restart deployment/$(params.APP_NAME)
-      runAfter:
-        - patch-deployment
-      taskRef:
-        kind: ClusterTask
-        name: openshift-client
-    - name: wait-rollout
-      params:
-        - name: SCRIPT
-          value: oc rollout status deployment/$(params.APP_NAME)
-      runAfter:
-        - deploy
-      taskRef:
-        kind: ClusterTask
-        name: openshift-client
+        name: helm-upgrade-from-source
+      workspaces:
+        - name: source
+          workspace: workspace
+    # - name: patch-deployment
+    #   params:
+    #     - name: SCRIPT
+    #       value: >-
+    #         oc patch deployment/$(params.APP_NAME) --type='json' -p='[{"op":
+    #         "replace", "path": "/spec/template/spec/containers/0/image",
+    #         "value": "$(params.IMAGE_NAME):$(params.IMAGE_TAG)"}]'
+    #     - name: VERSION
+    #       value: latest
+    #   runAfter:
+    #     - skopeo-copy
+    #   taskRef:
+    #     kind: ClusterTask
+    #     name: openshift-client
+    # - name: deploy
+    #   params:
+    #     - name: SCRIPT
+    #       value: oc rollout restart deployment/$(params.APP_NAME)
+    #   runAfter:
+    #     - patch-deployment
+    #   taskRef:
+    #     kind: ClusterTask
+    #     name: openshift-client
+    # - name: wait-rollout
+    #   params:
+    #     - name: SCRIPT
+    #       value: oc rollout status deployment/$(params.APP_NAME)
+    #   runAfter:
+    #     - deploy
+    #   taskRef:
+    #     kind: ClusterTask
+    #     name: openshift-client
   workspaces:
     - name: workspace
