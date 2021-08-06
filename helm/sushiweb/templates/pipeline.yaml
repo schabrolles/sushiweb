@@ -118,6 +118,8 @@ spec:
           value: values.yaml
         - name: helm_image
           value: quay.io/schabrolles/k8s-helm
+        - name: overwrite_values
+          value: image.tag=$(params.IMAGE_TAG)
       runAfter:
         - skopeo-copy
       taskRef:
