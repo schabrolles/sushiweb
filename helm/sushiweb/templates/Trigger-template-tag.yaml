@@ -28,13 +28,13 @@ spec:
           - name: GIT_REPO
             value: {{ .Values.git.repository }}
           - name: GIT_REVISION
-            value: $(tt.params.tag)
+            value: $(tt.params.tag) 
           - name: IMAGE_NAME
-            value: "{{ .Values.image.repository }}"
+            value: {{ .Values.image.repository }}
           - name: PATH_CONTEXT
             value: {{ .Values.git.context }}
           - name: TEST_IMAGE
-            value: "{{ .Values.image.repository }}-test"
+            value: {{ .Values.image.repository }}-test
           - name: IMAGE_TAG
             value: $(tt.params.tag)
         pipelineRef:
@@ -52,6 +52,6 @@ spec:
                 resources:
                   requests:
                     storage: 1Gi
-                    storageClassName: nfs-storage-provisioner
+                storageClassName: nfs-storage-provisioner
                 volumeMode: Filesystem
               status: {}
