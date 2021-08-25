@@ -53,6 +53,41 @@ items:
       image: registry.redhat.io/ubi8/ubi-minimal
       name: ""
       resources: {}
+- apiVersion: tekton.dev/v1beta1
+  kind: Task
+  metadata:
+    name: update-helm-appversion
+  spec:
+    params:
+      - name: appVersion
+        type: string
+      - name: helmRoot
+        type: string
+    steps:
+      - args:
+          - >-
+            sed 's|appVersion:.*|appVersion: $(inputs.params.appVersion)|'
+            $(inputs.params.helmRoot)/Chart.yaml >
+            $(inputs.params.helmRoot)/Chart.yaml.new && mv
+            $(inputs.params.helmRoot)/Chart.yaml.new
+            $(inputs.params.helmRoot)/Chart.yaml
+        command:
+          - /bin/bash
+          - '-c'
+        image: registry.redhat.io/ubi7/ubi-minimal
+        name: changing-appversion
+        resources: {}
+        workingDir: /workspace/source
+      - command:
+          - /bin/bash
+          - '-c'
+          - grep appVersion "$(inputs.params.helmRoot)/Chart.yaml"
+        image: registry.redhat.io/ubi7/ubi-minimal
+        name: checking-appversion
+        resources: {}
+        workingDir: /workspace/source
+    workspaces:
+      - name: source
 kind: List
 metadata:
   resourceVersion: ""

@@ -6,6 +6,14 @@ metadata:
     pipeline.openshift.io/strategy: docker
     pipeline.openshift.io/type: kubernetes
 spec:
+  finally:
+    - name: remove-test-image
+      params:
+        - name: SCRIPT
+          value: 'oc delete svc,deploy $(params.APP_NAME)-test'
+      taskRef:
+        kind: ClusterTask
+        name: openshift-client
   params:
     - default: {{ include "sushiweb.fullname" . }}
       name: APP_NAME
@@ -59,6 +67,20 @@ spec:
       workspaces:
         - name: source
           workspace: workspace
+    - name: update-helm-appversion
+      params:
+        - name: appVersion
+          value: $(params.IMAGE_TAG)
+        - name: helmRoot
+          value: packages/helm/sushiweb
+      runAfter:
+        - build
+      taskRef:
+        kind: Task
+        name: update-helm-appversion
+      workspaces:
+        - name: source
+          workspace: workspace
     - name: deploy-test-image
       params:
         - name: SCRIPT
@@ -81,15 +103,6 @@ spec:
       taskRef:
         kind: Task
         name: ubi8
-    - name: remove-test-image
-      params:
-        - name: SCRIPT
-          value: oc delete svc,deploy $(params.APP_NAME)-test
-      runAfter:
-        - test
-      taskRef:
-        kind: ClusterTask
-        name: openshift-client
     - name: skopeo-copy
       params:
         - name: srcImageURL
@@ -111,7 +124,7 @@ spec:
     - name: helm-upgrade-from-source
       params:
         - name: charts_dir
-          value: helm/sushiweb
+          value: packages/helm/sushiweb
         - name: release_name
           value: sushiweb
         - name: values_file
