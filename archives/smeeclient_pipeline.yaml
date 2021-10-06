@@ -10,7 +10,7 @@ spec:
   - default: master
     name: git_branch
     type: string
-  - default: "12"
+  - default: "14-ubi8"
     name: nodejs_ver
     type: string
   - default: quay.io/schabrolles/smeeclient_ppc64le:stable
