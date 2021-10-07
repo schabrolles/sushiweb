@@ -11,7 +11,7 @@ git:
 
 smee:
   enabled: true
-  smeeImage: quay.io/schabrolles/smeeclient_ppc64le:pipeline
+  smeeImage: quay.io/schabrolles/smeeclient:stable
   smeeSource: "https://smee.io/Gux6po61ZNiNcxLQ"
 
 image:
