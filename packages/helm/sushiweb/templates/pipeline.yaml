@@ -134,6 +134,7 @@ spec:
         - name: overwrite_values
           value: image.tag=$(params.IMAGE_TAG),image.repository=$(params.IMAGE_NAME)
       runAfter:
+        - update-helm-appversion
         - skopeo-copy
       taskRef:
         kind: ClusterTask
