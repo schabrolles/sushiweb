@@ -11,7 +11,7 @@ git:
 
 smee:
   enabled: true
-  smeeImage: quay.io/schabrolles/smeeclient:stable
+  smeeImage: quay.io/schabrolles/smeeclient:latest
   smeeSource: "https://smee.io/Gux6po61ZNiNcxLQ"
 
 image:
