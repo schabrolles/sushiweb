@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/httpd-24:latest
+FROM registry.access.redhat.com/ubi8/httpd-24:1-209
 
 COPY website/ /var/www/html
 
