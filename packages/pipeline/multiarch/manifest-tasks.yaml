@@ -18,3 +18,13 @@ spec:
       image: quay.io/containers/podman
       name: 'manifest'
       resources: {}
+      securityContext:
+        capabilities:
+          add:
+            - SETFCAP
+      volumeMounts:
+        - mountPath: /var/lib/containers
+          name: varlibcontainers
+  volumes:
+    - emptyDir: {}
+      name: varlibcontainers

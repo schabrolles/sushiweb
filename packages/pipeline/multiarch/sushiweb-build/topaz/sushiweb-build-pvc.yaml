@@ -2,5 +2,12 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: sushiweb-build
+  namespace: sushiweb-build
 spec:
-  storageClassName: scale-hcs-fileset
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ibm-spectrum-scale-internal
+  volumeMode: Filesystem
