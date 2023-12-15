@@ -14,7 +14,7 @@ spec:
     - script: |
         podman manifest create mylist && \
         sleep 5 && \
-        for image in $(params.IMAGES_LIST); do echo $image ; podman manifest add mylist $image; done &&\
+        for image in $(params.IMAGES_LIST); do echo $image ; podman manifest add mylist $image; done && \
         sleep 5 && \
         echo "push image $(params.MANIFEST_FILE)" && \
         podman manifest push $(params.MANIFEST_FILE) 
