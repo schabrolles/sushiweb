@@ -13,12 +13,9 @@ spec:
   steps:
     - script: |
         podman manifest create mylist && \
-        sleep 5 && \
-        for image in $(params.IMAGES_LIST); do echo $image ; podman manifest add mylist $image; done &&\
-        sleep 5 && \
-        echo "push image $(params.MANIFEST_FILE)" && \
-        podman manifest push $(params.MANIFEST_FILE) 
-      image: quay.io/containers/podman:v4.7
+        for image in $(params.IMAGES_LIST); do podman manifest add mylist \$image; done &&\
+        podman manifest push docker:\/\/$(params.MANIFEST_FILE) 
+      image: quay.io/containers/podman
       name: 'manifest'
       resources: {}
       securityContext:
