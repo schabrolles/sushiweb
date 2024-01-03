@@ -17,7 +17,7 @@ spec:
         for image in $(params.IMAGES_LIST); do echo $image ; podman manifest add mylist $image; done && \
         sleep 5 && \
         echo "push image $(params.MANIFEST_FILE)" && \
-        podman manifest push $(params.MANIFEST_FILE) 
+        podman manifest push mylist $(params.MANIFEST_FILE) 
       image: quay.io/containers/podman:v4.7
       name: 'manifest'
       resources: {}
